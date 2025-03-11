@@ -1,0 +1,81 @@
+﻿@page "/"
+
+<PageTitle>Taxi tarief voorspeller</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Hallo, reiziger!</MudText>
+<MudText Class="mb-8">Welkom bij de NYC taxi tarief voorspel app</MudText>
+
+<MudAlert Severity="Severity.Normal">
+    Deze app is gebaseerd op het volgende Microsoft learn artikel:
+    <MudLink Href="https://learn.microsoft.com/en-us/dotnet/machine-learning/tutorials/predict-prices-with-model-builder" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
+        <b>Predict prices using regression with Model Builder</b>
+    </MudLink>
+</MudAlert>
+
+<hr />
+@if (showAlert)
+{
+    <MudAlert Severity="Severity.Success" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseAlert())">Waarschijnlijke kosten voor deze rit bedragen $ @prediction.Score</MudAlert>
+}
+
+<div class="d-flex flex-column pa-10">
+    <div class="d-flex gap-10">
+        <div style="width: 240px;">
+            <MudSelect @bind-Value="ModelInput.Vendor_id" Label="Selecteer company" HelperText="NYC Taxi" Placeholder="Please Select" AdornmentIcon="@Icons.Material.Filled.LocalTaxi" AdornmentColor="Color.Primary">
+                <MudSelectItem Value="@("CMT")">CMT Company</MudSelectItem>
+                <MudSelectItem Value="@("VST")">VST Company</MudSelectItem>
+            </MudSelect>
+        </div>
+        <div style="width: 240px;">
+            <MudSelect @bind-Value="RateCode" Label="Selecteer rate" HelperText="Code" Placeholder="Please Select" AdornmentIcon="@Icons.Material.Filled.StarRate" AdornmentColor="Color.Primary">
+                <MudSelectItem Value="@(0)">0</MudSelectItem>
+                <MudSelectItem Value="@(1)">1</MudSelectItem>
+                <MudSelectItem Value="@(2)">2</MudSelectItem>
+                <MudSelectItem Value="@(3)">3</MudSelectItem>
+                <MudSelectItem Value="@(4)">4</MudSelectItem>
+                <MudSelectItem Value="@(5)">5</MudSelectItem>
+                <MudSelectItem Value="@(6)">6</MudSelectItem>
+            </MudSelect>
+        </div> 
+    </div>
+    <div class="d-flex gap-10 mt-4 ">
+        <div style="width: 240px;">
+            <MudNumericField @bind-Value="ModelInput.Passenger_count" Label="Aantal personen" Variant="Variant.Text" Min="0" Max="10" />
+        </div>
+        <div style="width: 240px;">
+            <MudNumericField @bind-Value="ModelInput.Trip_distance" Label="Afstand" Variant="Variant.Text" Min="0" Max="200" />
+        </div>
+    </div>
+    <div style="width: 240px;">
+        <MudSelect @bind-Value="ModelInput.Payment_type" Label="Selecteer betaal methode" HelperText="Methode" Placeholder="Please Select" AdornmentIcon="@Icons.Material.Filled.CreditCard" AdornmentColor="Color.Info">
+            <MudSelectItem Value="@(@"CRD")">Card</MudSelectItem>
+            <MudSelectItem Value="@(@"CSH")">Cash</MudSelectItem>
+        </MudSelect>
+    </div>
+    <div class="mt-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="async () => await PredictTarif()" >Voorspel mijn tarief</MudButton>
+    </div>
+</div>
+
+@code {
+    private bool showAlert;
+    private int RateCode { get; set; }
+    private TaxiFarePrediction.ModelInput ModelInput = new();
+    private TaxiFarePrediction.ModelOutput prediction = new();
+
+    async Task PredictTarif(){
+        ModelInput.Rate_code = (float)RateCode;
+        prediction = TaxiFarePrediction.Predict(ModelInput);
+        showAlert = true;
+        await AutoClose();
+    }
+
+    void CloseAlert(){
+        showAlert = false;
+    }
+
+    async Task AutoClose(){
+        await Task.Delay(5000);
+        showAlert = false;
+    }
+}
